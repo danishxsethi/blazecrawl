@@ -1,0 +1,70 @@
+"""Request/response models for the BlazeCrawl Core public API (v0.1)."""
+
+from __future__ import annotations
+
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+
+
+class ScrapeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    url: HttpUrl
+    formats: list[str] | None = Field(
+        default=None,
+        description="Subset of markdown, html, text, links, images. Default ['markdown'].",
+    )
+    only_main_content: bool = True
+    timeout_ms: int | None = Field(default=None, ge=1000, le=120000)
+    render: Literal["auto", "static", "browser"] = "auto"
+    use_cache: bool = True
+
+    @field_validator("url")
+    @classmethod
+    def _scheme(cls, v: HttpUrl) -> HttpUrl:
+        if v.scheme not in ("http", "https"):
+            raise ValueError("Only http and https URLs are allowed")
+        return v
+
+
+class ScrapeResponse(BaseModel):
+    success: bool
+    data: dict[str, Any] | None = None
+    error: str | None = None
+
+
+class MapRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    url: HttpUrl
+    include_sitemap: bool = True
+
+    @field_validator("url")
+    @classmethod
+    def _scheme(cls, v: HttpUrl) -> HttpUrl:
+        if v.scheme not in ("http", "https"):
+            raise ValueError("Only http and https URLs are allowed")
+        return v
+
+
+class CrawlRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    url: HttpUrl
+    max_pages: int | None = Field(default=None, ge=1, le=1000)
+    max_depth: int | None = Field(default=None, ge=0, le=5)
+
+    @field_validator("url")
+    @classmethod
+    def _scheme(cls, v: HttpUrl) -> HttpUrl:
+        if v.scheme not in ("http", "https"):
+            raise ValueError("Only http and https URLs are allowed")
+        return v
+
+
+class CrawlJobResponse(BaseModel):
+    success: bool
+    job_id: str
+    status: str
+    status_url: str

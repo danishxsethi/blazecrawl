@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blazecrawl"
+version = "0.1.0"
+description = "Python SDK for BlazeCrawl Core (self-hosted web-data engine)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Apache-2.0" }
+dependencies = ["httpx>=0.27.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["blazecrawl"]

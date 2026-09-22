@@ -1,0 +1,13 @@
+# Security-sensitive ownership. Replace with the repository's maintained owner/team.
+* @Danish-Sethi
+.github/workflows/ @Danish-Sethi
+Dockerfile @Danish-Sethi
+docker-compose.yml @Danish-Sethi
+blazecrawl_core/network/ @Danish-Sethi
+blazecrawl_core/engine/browser_pool.py @Danish-Sethi
+blazecrawl_core/api/auth.py @Danish-Sethi
+mcp/ @Danish-Sethi
+pyproject.toml @Danish-Sethi
+uv.lock @Danish-Sethi
+docs/SECURITY_MODEL.md @Danish-Sethi
+docs/ARCHITECTURE.md @Danish-Sethi

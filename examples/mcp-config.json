@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "blazecrawl": {
+      "command": "blazecrawl-mcp",
+      "env": { "BLAZECRAWL_API_KEY": "blz_local_REPLACE_ME" }
+    }
+  }
+}

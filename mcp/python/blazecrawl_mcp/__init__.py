@@ -1,0 +1,1 @@
+"""BlazeCrawl MCP server."""

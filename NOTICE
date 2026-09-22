@@ -1,0 +1,30 @@
+BlazeCrawl Core
+Copyright (c) 2026 BlazeCrawl
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+Third-party dependency licensing notes
+======================================
+
+BlazeCrawl Core's direct and transitive runtime dependencies were inventoried
+during the RC1 security/legal pass. The base install contains NO GPL, AGPL,
+SSPL, BSL, Elastic License, Commons Clause, or non-commercial licenses.
+
+Weak-copyleft / notice licenses present and assessed as compatible with
+Apache-2.0 distribution of this work:
+
+* chardet — LGPL-2.1-or-later. Used as an unmodified, dynamically-imported
+  library; no derivative work is created. LGPL dynamic-use obligations apply
+  to chardet itself, not to BlazeCrawl Core.
+* tld (transitive) — MPL-1.1 OR GPL-2.0-only OR LGPL-2.1-or-later; we rely on
+  the LGPL/MPL permissive-dynamic-use path. Unmodified library use.
+* certifi — MPL-2.0. File-level copyleft; unmodified use is compatible.
+
+If you redistribute a modified version of any LGPL/MPL-licensed dependency,
+consult that dependency's license terms. This NOTICE is informational and is
+not legal advice.
+
+An earlier RC draft used ``html2text`` (GPL-3.0). It was replaced with
+``markdownify`` (MIT) specifically to keep BlazeCrawl Core cleanly
+Apache-2.0-compatible. Do not reintroduce GPL/AGPL dependencies into the base
+install.

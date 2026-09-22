@@ -1,0 +1,11 @@
+{
+  "name": "@blazecrawl/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for BlazeCrawl Core (scrape/map/crawl tools).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "bin": { "blazecrawl-mcp": "./src/index.js" },
+  "engines": { "node": ">=18" },
+  "files": ["src"]
+}

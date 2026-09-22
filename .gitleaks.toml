@@ -1,0 +1,8 @@
+title = "BlazeCrawl Core Gitleaks Config"
+
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+  '''tests/test_keyfile.py''',
+  '''release/.*\.json''',
+]

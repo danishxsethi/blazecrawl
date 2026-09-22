@@ -1,0 +1,19 @@
+{
+  "name": "@blazecrawl/sdk",
+  "version": "0.1.0",
+  "description": "Node.js SDK for BlazeCrawl Core (self-hosted web-data engine).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "keywords": ["web-scraping", "crawler", "markdown", "llm"],
+  "files": ["src"]
+}

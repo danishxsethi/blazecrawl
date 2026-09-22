@@ -1,0 +1,192 @@
+"""Scrape orchestration for BlazeCrawl Core.
+
+Hybrid strategy: try a fast SSRF-pinned HTTP fetch first (cheap), and fall back
+to a headless-browser render when the static fetch yields too little usable
+content (JS-heavy pages). Both paths are egress-guarded.
+
+This is deliberately simpler than the commercial hybrid renderer (which adds
+managed proxy escalation and ML routing heuristics); it keeps the security
+guarantees while staying dependency-light and self-hostable.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import time
+from dataclasses import dataclass
+
+from blazecrawl_core.config import settings
+from blazecrawl_core.engine.browser_pool import get_browser_pool
+from blazecrawl_core.engine.content_extractor import (
+    ExtractedContent,
+    ExtractOptions,
+    get_content_extractor,
+)
+from blazecrawl_core.logging import get_logger
+from blazecrawl_core.network.egress import install_browser_ssrf_guard, safe_fetch
+from blazecrawl_core.network.ssrf import SSRFValidationError
+
+logger = get_logger(__name__)
+
+# If static extraction yields fewer words than this, try the browser path.
+_MIN_STATIC_WORDS = 40
+
+
+@dataclass
+class ScrapeResult:
+    url: str
+    final_url: str
+    status_code: int
+    markdown: str | None
+    html: str | None
+    plaintext: str | None
+    links: list[dict] | None
+    images: list[dict] | None
+    metadata: dict
+    render: str  # "static" | "browser"
+    duration_ms: float
+
+    def to_dict(self) -> dict:
+        return {
+            "url": self.url,
+            "final_url": self.final_url,
+            "status_code": self.status_code,
+            "markdown": self.markdown,
+            "html": self.html,
+            "plaintext": self.plaintext,
+            "links": self.links,
+            "images": self.images,
+            "metadata": self.metadata,
+            "render": self.render,
+            "duration_ms": round(self.duration_ms, 2),
+        }
+
+
+def _options_from(formats: list[str] | None, only_main_content: bool) -> ExtractOptions:
+    fmts = formats or ["markdown"]
+    return ExtractOptions(
+        only_main_content=only_main_content,
+        include_links=("links" in fmts),
+        include_images=("images" in fmts),
+        include_metadata=True,
+        formats=fmts,
+    )
+
+
+def _to_result(
+    url: str, status: int, ext: ExtractedContent, render: str, t0: float, final_url: str
+) -> ScrapeResult:
+    return ScrapeResult(
+        url=url,
+        final_url=final_url,
+        status_code=status,
+        markdown=ext.markdown,
+        html=ext.html,
+        plaintext=ext.plaintext,
+        links=ext.links,
+        images=ext.images,
+        metadata={
+            "title": ext.metadata.title,
+            "description": ext.metadata.description,
+            "language": ext.metadata.language,
+            "author": ext.metadata.author,
+            "published_date": ext.metadata.published_date,
+            "og_image": ext.metadata.og_image,
+            "canonical_url": ext.metadata.canonical_url,
+            "favicon": ext.metadata.favicon,
+            "extraction_engine": ext.extraction_engine,
+        },
+        render=render,
+        duration_ms=(time.perf_counter() - t0) * 1000,
+    )
+
+
+async def _fetch_static(url: str, timeout_ms: int) -> tuple[int, str, str]:
+    resp = await safe_fetch(
+        url,
+        timeout_s=timeout_ms / 1000,
+        max_redirects=settings.MAX_REDIRECTS,
+        max_bytes=settings.MAX_RESPONSE_BYTES,
+        user_agent="BlazeCrawl-Core/0.1 (+https://github.com/blazecrawl/blazecrawl)",
+    )
+    return resp.status_code, resp.text, resp.final_url
+
+
+async def _fetch_browser(url: str, timeout_ms: int) -> tuple[int, str, str]:
+    pool = get_browser_pool()
+    context = await pool.acquire(timeout_ms=timeout_ms)
+    try:
+        page = await pool.new_page(context, timeout_ms=timeout_ms)
+        await install_browser_ssrf_guard(page)
+        response = await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+        # Allow JS to settle briefly for SPA content.
+        with contextlib.suppress(Exception):
+            await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 5000))
+        html = await page.content()
+        status = response.status if response else 200
+        final_url = page.url
+        return status, html, final_url
+    finally:
+        await pool.release(context)
+
+
+async def scrape(
+    url: str,
+    *,
+    formats: list[str] | None = None,
+    only_main_content: bool = True,
+    timeout_ms: int | None = None,
+    render: str = "auto",
+) -> ScrapeResult:
+    """Scrape a URL to clean Markdown/HTML/text, egress-guarded.
+
+    Args:
+        url: Target URL (http/https only; private/reserved addresses rejected).
+        formats: Subset of {"markdown","html","text"/"plaintext","links","images"}.
+        only_main_content: Strip boilerplate via readability/trafilatura.
+        timeout_ms: Request timeout.
+        render: "auto" (static w/ browser fallback), "static", or "browser".
+    """
+    t0 = time.perf_counter()
+    timeout_ms = timeout_ms or settings.DEFAULT_TIMEOUT_MS
+    extractor = get_content_extractor()
+    opts = _options_from(formats, only_main_content)
+
+    if render not in ("auto", "static", "browser"):
+        raise ValueError("render must be one of auto|static|browser")
+
+    # Browser-only path.
+    if render == "browser":
+        status, html, final_url = await _fetch_browser(url, timeout_ms)
+        ext = await extractor.extract(html, final_url, opts)
+        return _to_result(url, status, ext, "browser", t0, final_url)
+
+    # Static path (with auto fallback to browser).
+    try:
+        status, html, final_url = await _fetch_static(url, timeout_ms)
+    except SSRFValidationError:
+        raise
+    except Exception as e:
+        if render == "static":
+            raise
+        logger.info("Static fetch failed, falling back to browser", url=url, error=str(e))
+        status, html, final_url = await _fetch_browser(url, timeout_ms)
+        ext = await extractor.extract(html, final_url, opts)
+        return _to_result(url, status, ext, "browser", t0, final_url)
+
+    ext = await extractor.extract(html, final_url, opts)
+
+    # Auto fallback: too little usable content from static fetch.
+    if render == "auto":
+        words = len((ext.markdown or "").split())
+        if words < _MIN_STATIC_WORDS and status == 200:
+            logger.info("Static content thin; retrying with browser", url=url, words=words)
+            try:
+                bstatus, bhtml, bfinal = await _fetch_browser(url, timeout_ms)
+                bext = await extractor.extract(bhtml, bfinal, opts)
+                if len((bext.markdown or "").split()) > words:
+                    return _to_result(url, bstatus, bext, "browser", t0, bfinal)
+            except Exception as e:
+                logger.warning("Browser fallback failed; using static result", error=str(e))
+
+    return _to_result(url, status, ext, "static", t0, final_url)

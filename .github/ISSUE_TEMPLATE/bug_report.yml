@@ -1,0 +1,37 @@
+name: Bug Report
+description: Report something BlazeCrawl Core claims to do but does incorrectly or insecurely
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report. Security issues → see SECURITY.md (do NOT file publicly).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you expected vs what happened.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Commands/requests/code. Include the target URL class (public page, JS-heavy, etc.).
+    validations:
+      required: true
+  - type: textarea
+    id: ready
+    attributes:
+      label: Output of GET /ready
+      description: Paste the JSON.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 0.1.0
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      options: ["docker compose", "local pip", "other"]

@@ -1,0 +1,5 @@
+# False positives
+tests/test_keyfile.py:generic-api-key:53
+tests/test_keyfile.py:generic-api-key:56
+release/trivy-container-scan.json:generic-api-key:66
+release/trivy-container-scan.json:generic-api-key:210

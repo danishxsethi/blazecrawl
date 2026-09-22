@@ -1,0 +1,126 @@
+name: CI
+
+# CI validates untrusted pull requests and never needs repository write access.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  python:
+    name: Python (lint, type, tests, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Install (dev extras)
+        run: uv pip install --system -e ".[dev]"
+      - name: Install Chromium
+        run: playwright install --with-deps chromium
+      - name: Ruff lint
+        run: ruff check blazecrawl_core
+      - name: Ruff format check
+        run: ruff format --check blazecrawl_core
+      - name: Tests
+        run: pytest -q
+      - name: Build wheel
+        run: uv build
+
+  python-sdk:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Install
+        run: uv pip install --system -e sdks/python[dev]
+      - name: Import check
+        run: python -c "import blazecrawl; print(blazecrawl.__version__)"
+
+  node:
+    name: Node SDK + MCP (lint/typecheck/test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - name: Node SDK syntax + tests
+        run: |
+          node --check sdks/node/src/index.js
+          cd sdks/node && npm test
+      - name: Node MCP syntax
+        run: node --check mcp/node/src/index.js
+
+  python-mcp:
+    name: Python MCP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - run: uv pip install --system -e mcp/python
+      - name: Import check
+        run: python -c "from blazecrawl_mcp import server; print('mcp ok')"
+
+  docker-smoke:
+    name: Docker quickstart smoke (OSS-J1/J2/J5)
+    runs-on: ubuntu-latest
+    env:
+      BLAZECRAWL_API_KEY: ci-local-test-key-not-a-secret
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build + up
+        run: docker compose up --build -d
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8000/health && break || sleep 2
+          done
+      - name: Scrape + SSRF gate
+        run: |
+          # CI supplies an ephemeral key instead of reading a credential from logs.
+          KEY="${BLAZECRAWL_API_KEY}"
+          curl -fsS -X POST http://localhost:8000/v1/scrape \
+            -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+            -d '{"url":"https://example.com"}' | grep -q "Example Domain"
+          # SSRF must be rejected
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8000/v1/scrape \
+            -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
+            -d '{"url":"http://127.0.0.1/"}')
+          [ "$code" = "400" ]
+      - name: Down
+        if: always()
+        run: docker compose down -v
+
+  security:
+    name: Security (secrets, deps, licenses)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+      - run: uv python install ${{ env.PYTHON_VERSION }}
+      - name: Dependency vulnerability audit
+        run: |
+          uv pip install --system pip-audit
+          uv pip install --system -e ".[dev]"
+          pip-audit --progress-spinner off
+      - name: License inventory
+        run: |
+          uv pip install --system pip-licenses
+          uv pip install --system -e .
+          pip-licenses --format=markdown --with-urls
+      - name: Secret scan
+        run: |
+          # grep-based guard: no live-looking secrets in tracked files
+          ! grep -rnoE 'sk_live_[A-Za-z0-9]{10,}|xox[baprs]-[A-Za-z0-9-]+|ghp_[A-Za-z0-9]{30,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----' . \
+            --exclude-dir=.git --exclude-dir=.venv

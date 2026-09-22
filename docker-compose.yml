@@ -1,0 +1,64 @@
+services:
+  api:
+    build: .
+    image: blazecrawl-core:0.1.0
+    # Loopback-only by default. To expose remotely, publish explicitly and
+    # keep TLS in front, e.g.:
+    #   ports: ["8000:8000"]   # behind a reverse proxy with TLS + your own firewalling
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      # Auth is ON by default. On first start a local API key is generated and
+      # persisted to /data/blazecrawl/api_key (mode 0600, shown once). Set
+      # BLAZECRAWL_API_KEY to use your own key (never persisted/printed).
+      # For trusted loopback-only dev, set BLAZECRAWL_AUTH_DISABLED=true
+      # (refused on non-loopback binds).
+      BLAZECRAWL_HOST: 0.0.0.0
+      BLAZECRAWL_PORT: "8000"
+      BLAZECRAWL_API_KEY: ${BLAZECRAWL_API_KEY:-}
+      BLAZECRAWL_STATE_DIR: /data/blazecrawl
+      # Optional Redis cache/queue. Leave empty to use the in-process backends.
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CRAWL_QUEUE_BACKEND: ${CRAWL_QUEUE_BACKEND:-memory}
+      BROWSER_POOL_SIZE: ${BROWSER_POOL_SIZE:-2}
+    volumes:
+      # Deliberate state only: the persisted local API key.
+      - api-state:/data/blazecrawl
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+      - /dev/shm:size=256m,mode=1777
+    depends_on:
+      redis:
+        condition: service_started
+        required: false
+    restart: unless-stopped
+
+  # Redis is optional (caching/queue). The API runs fine without it using
+  # in-process backends; it's included so a shared cache is one flag away.
+  # Internal compose network only: no host-published port.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  api-state:
+  redis-data:

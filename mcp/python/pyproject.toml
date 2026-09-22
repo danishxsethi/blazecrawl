@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blazecrawl-mcp"
+version = "0.1.0"
+description = "MCP server for BlazeCrawl Core (scrape/map/crawl tools)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = ["mcp>=1.0.0,<2.0.0", "httpx>=0.27.0"]
+
+[project.scripts]
+blazecrawl-mcp = "blazecrawl_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["blazecrawl_mcp"]

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Build and test outputs
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# JavaScript
+node_modules/
+npm-debug.log*
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Local data and runtime state
+*.db
+*.sqlite
+*.sqlite3
+*.rdb
+*.log
+
+# Archives and patches
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.patch
+*.diff
+
+# Editors and OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store

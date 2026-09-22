@@ -9,7 +9,7 @@ description = "MCP server for BlazeCrawl Core (scrape/map/crawl tools)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
-dependencies = ["mcp>=1.0.0,<2.0.0", "httpx>=0.27.0"]
+dependencies = ["mcp>=1.0.0,<3.0.0", "httpx>=0.27.0"]
 
 [project.scripts]
 blazecrawl-mcp = "blazecrawl_mcp.server:main"

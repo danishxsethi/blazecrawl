@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 # Render all README demo GIFs from their asciinema casts.
 #
-# Pipeline per demo:
-#   1. start a disposable BlazeCrawl demo container (loopback-only, demo key)
-#   2. record the real session with asciinema  -> .cast
-#   3. render the cast to a GIF with agg
-#   4. optimize with gifsicle
+# Orchestration:
+#   1. HERO is self-contained: session_hero.sh starts its own published container
+#      (the visible `docker run` is the executed command), reads its local key
+#      from the logs without printing it, and cleans up after itself.
+#   2. A shared disposable instance (loopback-only, demo key) is then started for
+#      the map/crawl, security, and MCP demos, and stopped afterward.
+#   3. Each cast is rendered to a GIF with agg and optimized with gifsicle.
 #
-# Every command shown is executed for real against the demo instance; nothing is
-# fabricated. See README.md in this directory for prerequisites.
+# Truthfulness standard: every line displayed with a "$" shell prompt is actually
+# executed; architectural captions are presented without a shell prompt; and all
+# product output shown comes from real BlazeCrawl execution. See README.md in
+# this directory for prerequisites.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -89,12 +93,16 @@ render() {
 }
 
 main() {
+  # HERO first: fully self-contained (starts and cleans up its own container).
+  # No shared instance is running yet, so the hero's port 8000 is free.
+  echo ">> recording hero (self-contained)"
+  "$ASCIIINEMA" rec --command "bash \"$REPO_ROOT/scripts/readme_demo/session_hero.sh\"" \
+    --cols 100 --rows 24 --overwrite "$CASTS/hero.cast" >/dev/null
+  render hero 100 24 18
+
+  # Shared disposable instance for the remaining demos.
   start_demo
   trap stop_demo EXIT
-
-  # hero: zero -> first scrape
-  record hero scripts/readme_demo/session_hero.sh 100 24
-  render hero 100 24 18
 
   # map -> crawl
   record map-crawl scripts/readme_demo/session_map_crawl.sh 100 24

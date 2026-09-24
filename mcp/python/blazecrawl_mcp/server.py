@@ -37,6 +37,7 @@ async def list_tools() -> list[Tool]:
                     "url": {"type": "string", "description": "http/https URL to scrape"},
                     "render": {
                         "type": "string",
+                        "description": "Rendering mode: auto-select, static HTTP, or browser rendering",
                         "enum": ["auto", "static", "browser"],
                         "default": "auto",
                     },
@@ -49,7 +50,12 @@ async def list_tools() -> list[Tool]:
             description="Discover the URL set of a site (sitemap + link graph).",
             inputSchema={
                 "type": "object",
-                "properties": {"url": {"type": "string"}},
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "description": "http/https site URL whose discoverable links should be mapped",
+                    }
+                },
                 "required": ["url"],
             },
         ),
@@ -59,9 +65,18 @@ async def list_tools() -> list[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "url": {"type": "string"},
-                    "max_pages": {"type": "integer"},
-                    "max_depth": {"type": "integer"},
+                    "url": {
+                        "type": "string",
+                        "description": "http/https site URL to crawl",
+                    },
+                    "max_pages": {
+                        "type": "integer",
+                        "description": "Maximum number of pages to return from the crawl",
+                    },
+                    "max_depth": {
+                        "type": "integer",
+                        "description": "Maximum same-origin link depth from the starting URL",
+                    },
                 },
                 "required": ["url"],
             },

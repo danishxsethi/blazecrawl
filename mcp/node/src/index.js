@@ -18,8 +18,13 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        url: { type: "string" },
-        render: { type: "string", enum: ["auto", "static", "browser"], default: "auto" },
+        url: { type: "string", description: "http/https URL to scrape" },
+        render: {
+          type: "string",
+          description: "Rendering mode: auto-select, static HTTP, or browser rendering",
+          enum: ["auto", "static", "browser"],
+          default: "auto",
+        },
       },
       required: ["url"],
     },
@@ -27,7 +32,16 @@ const TOOLS = [
   {
     name: "map",
     description: "Discover the URL set of a site (sitemap + link graph).",
-    inputSchema: { type: "object", properties: { url: { type: "string" } }, required: ["url"] },
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "http/https site URL whose discoverable links should be mapped",
+        },
+      },
+      required: ["url"],
+    },
   },
   {
     name: "crawl",
@@ -35,9 +49,15 @@ const TOOLS = [
     inputSchema: {
       type: "object",
       properties: {
-        url: { type: "string" },
-        max_pages: { type: "integer" },
-        max_depth: { type: "integer" },
+        url: { type: "string", description: "http/https site URL to crawl" },
+        max_pages: {
+          type: "integer",
+          description: "Maximum number of pages to return from the crawl",
+        },
+        max_depth: {
+          type: "integer",
+          description: "Maximum same-origin link depth from the starting URL",
+        },
       },
       required: ["url"],
     },

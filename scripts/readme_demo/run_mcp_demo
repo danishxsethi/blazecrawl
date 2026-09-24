@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Executable wrapper for the README MCP demo. This is the command actually shown
+# and executed in the GIF. It invokes the real, standards-compliant MCP stdio
+# client (mcp_demo_client.py) against a real blazecrawl-mcp server — performing
+# initialize -> tools/list -> tools/call scrape. No LLM is involved or implied.
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$HERE/mcp_demo_client.py" blazecrawl-mcp

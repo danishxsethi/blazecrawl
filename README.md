@@ -120,6 +120,8 @@ docker compose logs api | grep "first run"
 
 ### Scrape
 
+See [HTML table conversion and limitations](docs/MARKDOWN_TABLES.md) when extracting tabular data.
+
 Use the key from the logs (`blz_local_...`):
 
 ```bash

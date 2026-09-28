@@ -94,7 +94,6 @@ def cmd_crawl(args: argparse.Namespace) -> int:
         return 1
 
 
-
 def _doctor_playwright() -> tuple[bool, str]:
     try:
         from playwright.sync_api import sync_playwright

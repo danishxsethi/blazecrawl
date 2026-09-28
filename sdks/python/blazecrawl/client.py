@@ -155,6 +155,30 @@ class BlazeCrawl:
             self._raise(r)
         return r.json()
 
+    async def acrawl(
+        self,
+        url: str,
+        wait: bool = True,
+        poll_interval: float = 1.0,
+        **kwargs: Any,
+    ) -> dict:
+        r = await self._async.post("/v1/crawl", json={"url": url, **kwargs})
+        if r.status_code >= 400:
+            self._raise(r)
+        job = r.json()
+        if not wait:
+            return job
+
+        jid = job["job_id"]
+        while True:
+            status_response = await self._async.get(f"/v1/crawl/{jid}")
+            if status_response.status_code >= 400:
+                self._raise(status_response)
+            status = status_response.json()
+            if status.get("status") in ("completed", "failed", "cancelled"):
+                return status
+            await asyncio.sleep(poll_interval)
+
     async def aclose(self) -> None:
         await self._async.aclose()
         self._client.close()

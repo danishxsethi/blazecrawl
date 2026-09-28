@@ -101,7 +101,7 @@ def _to_result(
     )
 
 
-aasync def _fetch_static(url: str, timeout_ms: int, user_agent: str) -> tuple[int, str, str]:
+async def _fetch_static(url: str, timeout_ms: int, user_agent: str) -> tuple[int, str, str]:
     resp = await safe_fetch(
         url,
         timeout_s=timeout_ms / 1000,
@@ -112,7 +112,7 @@ aasync def _fetch_static(url: str, timeout_ms: int, user_agent: str) -> tuple[in
     return resp.status_code, resp.text, resp.final_url
 
 
-aasync def _fetch_browser(url: str, timeout_ms: int, user_agent: str) -> tuple[int, str, str]:
+async def _fetch_browser(url: str, timeout_ms: int, user_agent: str) -> tuple[int, str, str]:
     pool = get_browser_pool()
     context = await pool.acquire(timeout_ms=timeout_ms)
     try:

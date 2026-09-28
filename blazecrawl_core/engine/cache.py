@@ -76,7 +76,7 @@ def make_key(
     render: str = "auto",
     user_agent: str = "BlazeCrawl/0.1.0",
 ) -> str:
-        base = f"{url}|{sorted(formats or ['markdown'])}|{int(only_main_content)}|{render}|{user_agent}"    )
+    base = f"{url}|{sorted(formats or ['markdown'])}|{int(only_main_content)}|{render}|{user_agent}"
     return "bc:scrape:" + hashlib.sha256(base.encode()).hexdigest()
 
 
@@ -88,9 +88,7 @@ async def get_cached(
     user_agent: str = "BlazeCrawl/0.1.0",
 ) -> dict | None:
     try:
-        raw = await _get_cache().get(
-            make_key(url, formats, only_main_content, render, user_agent)
-        )
+        raw = await _get_cache().get(make_key(url, formats, only_main_content, render, user_agent))
         return json.loads(raw) if raw else None
     except Exception as e:
         logger.warning("Cache get failed", error=str(e))

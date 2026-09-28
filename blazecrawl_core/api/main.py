@@ -87,7 +87,11 @@ async def scrape_endpoint(payload: ScrapeRequest) -> ScrapeResponse:
     try:
         if payload.use_cache:
             hit = await cache.get_cached(
-                url, payload.formats, payload.only_main_content, payload.render
+                url,
+                payload.formats,
+                payload.only_main_content,
+                payload.render,
+                payload.user_agent,
             )
             if hit is not None:
                 return ScrapeResponse(success=True, data={**hit, "cached": True})
@@ -98,11 +102,17 @@ async def scrape_endpoint(payload: ScrapeRequest) -> ScrapeResponse:
             only_main_content=payload.only_main_content,
             timeout_ms=payload.timeout_ms,
             render=payload.render,
+            user_agent=payload.user_agent,
         )
         data = result.to_dict()
         if payload.use_cache:
             await cache.set_cached(
-                url, payload.formats, payload.only_main_content, data, render=payload.render
+                url,
+                payload.formats,
+                payload.only_main_content,
+                data,
+                render=payload.render,
+                user_agent=payload.user_agent,
             )
         return ScrapeResponse(success=True, data=data)
     except SSRFValidationError as e:
@@ -159,7 +169,12 @@ async def crawl_endpoint(payload: CrawlRequest) -> CrawlJobResponse:
         ) from e
 
     manager = get_crawl_manager()
-    job = manager.create_job(str(payload.url), payload.max_pages, payload.max_depth)
+    job = manager.create_job(
+        str(payload.url),
+        payload.max_pages,
+        payload.max_depth,
+        user_agent=payload.user_agent,
+    )
     return CrawlJobResponse(
         success=True,
         job_id=job.job_id,

@@ -167,11 +167,12 @@ blazecrawl-server          # serves on http://127.0.0.1:8000
 ```bash
 curl -X POST http://localhost:8000/v1/scrape \
   -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","formats":["markdown","links"],"render":"auto"}'
+  -d '{"url":"https://example.com","formats":["markdown","links"],"render":"auto","user_agent":"ResearchBot/2.4"}'
 ```
 
 `render` is `auto` (static, with browser fallback when content is thin),
-`static`, or `browser`.
+`static`, or `browser`. `user_agent` controls the outbound User-Agent header and
+is included in the scrape cache key.
 
 ### Map
 
@@ -186,10 +187,14 @@ curl -X POST http://localhost:8000/v1/map \
 ```bash
 curl -X POST http://localhost:8000/v1/crawl \
   -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","max_pages":25,"max_depth":2}'
+  -d '{"url":"https://example.com","max_pages":25,"max_depth":2,"user_agent":"ResearchBot/2.4"}'
 # → {"job_id":"...","status_url":"/v1/crawl/..."}
 curl http://localhost:8000/v1/crawl/<job_id> -H "Authorization: Bearer $KEY"
 ```
+
+`user_agent` selects which robots.txt rules a crawl follows. It defaults to
+`BlazeCrawl/0.1.0` and can be set per crawl when a site publishes bot-specific rules.
+
 
 <p align="center">
   <img

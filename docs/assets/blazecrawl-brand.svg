@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">BlazeCrawl Core — Web pages in. Clean Markdown out.</title>
+  <desc id="desc">Self-hosted web extraction for developers and AI systems. Scrape, map, and crawl through one security-first engine.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#111820"/>
+      <stop offset="1" stop-color="#0b1016"/>
+    </linearGradient>
+    <linearGradient id="flame" x2=".4" y2="1">
+      <stop stop-color="#ffd28a"/>
+      <stop offset="1" stop-color="#ff922e"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#ffad52" stop-opacity=".13"/>
+      <stop offset="1" stop-color="#ffad52" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="360" rx="24" fill="url(#background)"/>
+  <rect x="1" y="1" width="1198" height="358" rx="23" fill="none" stroke="#26313e"/>
+  <ellipse cx="990" cy="130" rx="280" ry="230" fill="url(#glow)"/>
+  <g fill="none" stroke="#24303b" opacity=".5">
+    <path d="M746 0v360m80-360v360m80-360v360m80-360v360m80-360v360"/>
+    <path d="M720 60h480M720 140h480M720 220h480M720 300h480"/>
+  </g>
+  <g transform="translate(54 38)">
+    <rect width="42" height="48" rx="12" fill="#ffad52" fill-opacity=".1"/>
+    <path d="M24 4c2 9-9 12-6 20 3-1 5-4 6-7 9 8 12 14 8 21-3 6-13 8-19 2-7-8-1-17 4-22 0 6 2 7 3 7-5-10 8-12 4-21Z" fill="url(#flame)"/>
+  </g>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <text x="110" y="65" fill="#f0f4f8" font-size="25" font-weight="700" letter-spacing="-.5">BlazeCrawl</text>
+    <text x="248" y="65" fill="#94a5b5" font-size="15" letter-spacing="2">CORE</text>
+    <text x="54" y="150" fill="#f0f4f8" font-size="53" font-weight="750" letter-spacing="-1.8">Web pages in.</text>
+    <text x="54" y="212" fill="#ffbd70" font-size="53" font-weight="750" letter-spacing="-1.8">Clean Markdown out.</text>
+    <text x="56" y="256" fill="#a7b5c4" font-size="20">Your infrastructure. One security-first engine.</text>
+    <g font-size="13" font-weight="600" letter-spacing="1.2">
+      <text x="56" y="315" fill="#c1ccd7">SELF-HOSTED</text>
+      <circle cx="183" cy="310" r="2" fill="#ffad52"/>
+      <text x="200" y="315" fill="#c1ccd7">NO CLOUD ACCOUNT</text>
+      <circle cx="387" cy="310" r="2" fill="#ffad52"/>
+      <text x="404" y="315" fill="#c1ccd7">APACHE-2.0</text>
+    </g>
+    <g transform="translate(797 73)">
+      <text x="0" y="0" fill="#94a5b5" font-size="12" letter-spacing="2">THREE TOOLS. ONE ENGINE.</text>
+      <g transform="translate(0 24)">
+        <rect width="338" height="52" rx="10" fill="#151e28" stroke="#34404e"/>
+        <text x="18" y="33" fill="#ffbd70" font-size="13" font-weight="700">01</text>
+        <text x="55" y="33" fill="#edf2f7" font-size="18" font-weight="600">Scrape</text>
+        <text x="169" y="33" fill="#9aabba" font-size="14">URL → Markdown</text>
+      </g>
+      <g transform="translate(0 90)">
+        <rect width="338" height="52" rx="10" fill="#151e28" stroke="#34404e"/>
+        <text x="18" y="33" fill="#ffbd70" font-size="13" font-weight="700">02</text>
+        <text x="55" y="33" fill="#edf2f7" font-size="18" font-weight="600">Map</text>
+        <text x="169" y="33" fill="#9aabba" font-size="14">Site → URL set</text>
+      </g>
+      <g transform="translate(0 156)">
+        <rect width="338" height="52" rx="10" fill="#151e28" stroke="#34404e"/>
+        <text x="18" y="33" fill="#ffbd70" font-size="13" font-weight="700">03</text>
+        <text x="55" y="33" fill="#edf2f7" font-size="18" font-weight="600">Crawl</text>
+        <text x="169" y="33" fill="#9aabba" font-size="14">Site → page data</text>
+      </g>
+    </g>
+  </g>
+</svg>

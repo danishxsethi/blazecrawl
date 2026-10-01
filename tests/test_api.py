@@ -73,7 +73,7 @@ def test_scrape_example_com(client):
     assert r.status_code == 200
     d = r.json()
     assert d["success"] is True
-    assert "Example Domain" in (d["data"]["markdown"] or "")
+    assert "documentation examples" in (d["data"]["markdown"] or "")
 
 
 def test_map_example_com(client):

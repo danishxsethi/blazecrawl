@@ -6,14 +6,17 @@ MCP demo. It performs a real MCP exchange against a real blazecrawl-mcp server:
 
 No LLM is involved or implied. The output printed is the real server's response.
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
 import sys
 
-from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from mcp.types import TextContent
+
+from mcp import ClientSession, StdioServerParameters
 
 
 async def main() -> int:
@@ -26,19 +29,21 @@ async def main() -> int:
             "BLAZECRAWL_API_KEY": os.environ.get("BLAZECRAWL_API_KEY", ""),
         },
     )
-    async with stdio_client(server) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
+    async with stdio_client(server) as (read, write), ClientSession(read, write) as session:
+        await session.initialize()
 
-            tools = await session.list_tools()
-            names = [t.name for t in tools.tools]
-            print("tools/list ->", ", ".join(names))
+        tools = await session.list_tools()
+        names = [t.name for t in tools.tools]
+        print("tools/list ->", ", ".join(names))
 
-            result = await session.call_tool("scrape", {"url": "https://example.com"})
-            text = result.content[0].text if result.content else ""
-            # Print only the first portion of the real returned Markdown.
-            print("tools/call scrape ->")
-            print(text[:240])
+        result = await session.call_tool(
+            "scrape", {"url": "https://example.com", "render": "static"}
+        )
+        if result.isError or not result.content or not isinstance(result.content[0], TextContent):
+            raise RuntimeError(f"MCP scrape failed: {result}")
+        text = result.content[0].text
+        print("tools/call scrape ->")
+        print(text.split("\n\n", 1)[0])
     return 0
 
 

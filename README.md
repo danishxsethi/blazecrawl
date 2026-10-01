@@ -1,380 +1,394 @@
-# BlazeCrawl Core
-
-**Security-first, self-hostable web extraction for developers and AI systems.**
-Turn web pages into clean, LLM-ready Markdown and structured data via three
-endpoints: `/v1/scrape`, `/v1/crawl`, and `/v1/map`.
-
-[![PyPI](https://img.shields.io/pypi/v/blazecrawl-core?label=blazecrawl-core)](https://pypi.org/project/blazecrawl-core/)
-[![npm](https://img.shields.io/npm/v/@blazecrawl/sdk?label=%40blazecrawl%2Fsdk)](https://www.npmjs.com/package/@blazecrawl/sdk)
-[![CI](https://github.com/danishxsethi/blazecrawl/actions/workflows/ci.yml/badge.svg)](https://github.com/danishxsethi/blazecrawl/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/pypi/pyversions/blazecrawl-core)](https://pypi.org/project/blazecrawl-core/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-
 <p align="center">
-  <img
-    src="docs/assets/blazecrawl-hero.gif"
-    alt="BlazeCrawl quickstart: run the container locally, check health, and scrape a page to clean Markdown"
-    width="900"
-  />
+  <img src="docs/assets/blazecrawl-brand.svg" alt="BlazeCrawl: Web pages in. Clean Markdown out. Your infrastructure. One security-first engine." width="1000" />
 </p>
 
-**Try it in one command** (published Linux x86_64 image):
+<h1 align="center">BlazeCrawl Core</h1>
 
-```bash
-docker run --rm -p 127.0.0.1:8000:8000 ghcr.io/danishxsethi/blazecrawl:0.1.2
-```
+<p align="center">
+  <strong>Security-first web extraction. Self-hosted by you.</strong><br />
+  Turn public web pages into Markdown and page data for RAG pipelines, AI agents, and developer tools.
+</p>
 
-Then scrape any URL → clean Markdown. Full walkthrough in [Quickstart](#quickstart).
+<p align="center">
+  <a href="https://pypi.org/project/blazecrawl-core/"><img src="https://img.shields.io/pypi/v/blazecrawl-core?style=flat-square&amp;label=PyPI&amp;color=ffad52" alt="PyPI version" /></a>
+  <a href="https://www.npmjs.com/package/@blazecrawl/sdk"><img src="https://img.shields.io/npm/v/@blazecrawl/sdk?style=flat-square&amp;label=npm&amp;color=ffad52" alt="Node SDK version" /></a>
+  <a href="https://github.com/danishxsethi/blazecrawl/actions/workflows/ci.yml"><img src="https://github.com/danishxsethi/blazecrawl/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status on main" /></a>
+  <a href="https://pypi.org/project/blazecrawl-core/"><img src="https://img.shields.io/badge/Python-3.11%2B-9baebe?style=flat-square" alt="Requires Python 3.11 or newer" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-9baebe?style=flat-square" alt="Apache-2.0 license" /></a>
+</p>
 
-BlazeCrawl Core is the **open-source engine**. It is built for people who want
-to run their own scraping infrastructure **without handing their URLs, traffic,
-or credentials to a third party** — and without giving up the outbound-request
-security that most self-hosted scrapers skip.
+<p align="center">
+  <a href="#quickstart"><strong>Get started</strong></a> &nbsp;·&nbsp;
+  <a href="#integrations">Choose an integration</a> &nbsp;·&nbsp;
+  <a href="#contributing"><strong>Build with us</strong></a> &nbsp;·&nbsp;
+  <a href="docs/ARCHITECTURE.md">Explore the architecture</a>
+</p>
 
-## What it is
+---
 
-* A single-binary, self-hosted web-data API you run yourself.
-* Hardened by default: every outbound fetch is **SSRF-validated and
-  pinned-at-connect** (DNS-rebinding resistant), blocks private/loopback/
-  link-local/cloud-metadata ranges, blocks `https→http` redirect downgrades,
-  and caps response sizes.
-* Browser-backed rendering (Playwright) for JS-heavy pages, with a fast static
-  path for simple pages.
-* robots.txt-respecting crawler (same-origin BFS).
-* Python SDK, Node SDK, CLI, and MCP servers.
+**One engine. Three jobs:** scrape a page, map a site's URLs, or crawl a bounded set of pages.
+Run it locally without a cloud account or a third-party scraping service.
 
-## What it is not
+<p align="center">
+  <img src="docs/assets/blazecrawl-hero.gif" alt="Real local demo: launch BlazeCrawl, check health, then scrape example.com to Markdown through the CLI" width="1000" />
+</p>
 
-* **Not a hosted SaaS.** There is no account to create and no external service
-  to sign up for. You run it; you own it.
-* **Not a managed anti-bot / residential-proxy product.** Managed proxy fleets,
-  managed LLM extraction, enterprise SSO/SCIM, and multi-tenant metering are
-  part of the separate commercial *BlazeCrawl Cloud* — they are deliberately
-  excluded here (see [docs/OSS_VS_CLOUD.md](docs/OSS_VS_CLOUD.md)).
-* **Not a "Firecrawl killer".** It is a focused, security-first engine. No
-  inflated benchmark claims — see [docs/BENCHMARKS.md](docs/BENCHMARKS.md) for
-  our own reproducible baseline methodology.
-
-## Why it exists
-
-Most self-hosted scrapers treat the outbound request as trusted. BlazeCrawl
-Core treats every user-supplied URL as hostile: it resolves the host once,
-validates every returned address against a private/reserved denylist, pins the
-connection to the validated IP (so DNS can't be rebound between check and use),
-and re-validates every redirect hop. That posture is the point.
+<p align="center">
+  <sub>Real output from a native local instance. No simulated results. <a href="docs/assets/blazecrawl-hero.png">Static view</a> · <a href="scripts/readme_demo/README.md">Reproduce the demos</a></sub>
+</p>
 
 ## Why BlazeCrawl?
 
-* **Self-hosted.** Requests, URLs, and credentials stay on your machine. No
-  account, no external service, no data leaves your infrastructure.
-* **Security-oriented outbound networking.** Every fetch — static or browser —
-  goes through one egress path that validates against SSRF, blocks
-  private/reserved destinations, resists DNS rebinding (resolve-once +
-  pin-at-connect), and intercepts browser subresource requests.
-* **Many integration surfaces, one engine.** HTTP API, CLI, Python SDK, Node
-  SDK, MCP server, and a Docker image — all backed by the same core.
+Web extraction is more than fetching HTML. BlazeCrawl brings the API, rendering, extraction,
+and outbound-request controls together so you can spend less time assembling infrastructure.
 
-Compared to wiring it up yourself:
+| What you need | What BlazeCrawl provides |
+|---|---|
+| Content for your retrieval pipeline | Main-content extraction to Markdown, with optional HTML, text, links, and images. |
+| A site's discoverable URLs | Sitemap and link-graph discovery through `/v1/map`. |
+| More than one page | Same-origin crawl jobs with page/depth limits, robots.txt rules, polling, and cancellation. |
+| JavaScript-rendered content | Playwright rendering, plus a static path and automatic fallback for thin content. |
+| Control over your deployment | A local API and Docker image; no mandatory hosted platform or cloud credentials. |
+| Defenses against hostile URLs | Destination validation, private-address blocking, DNS-rebinding-resistant connections, and guarded browser egress. |
+| A familiar integration | HTTP, Python, Node.js, CLI, or MCP, backed by the same engine. |
 
-| Capability | Raw `requests`/`httpx` | Raw Playwright | BlazeCrawl |
-|---|:---:|:---:|:---:|
-| Markdown extraction | manual | manual | built in |
-| Site crawl (BFS + robots) | manual | manual | built in |
-| Site map / URL discovery | manual | manual | built in |
-| HTTP API | custom | custom | built in |
-| JS browser rendering | no | yes | yes |
-| Outbound SSRF / DNS-rebinding controls | manual | manual | built in |
-| Python SDK | — | — | yes |
-| Node SDK | — | — | yes |
-| MCP server | — | — | yes |
-
-This table compares *approaches*, not other products; it reflects what
-BlazeCrawl provides out of the box versus assembling the pieces by hand.
+**Best fit:** self-hosted extraction for developer tools, research workflows, and downstream AI systems.
+Core does not bundle an LLM, a managed proxy fleet, or a promise to bypass every site's bot protection.
 
 ## Quickstart
 
-Two ways to run it. Both serve the API on `http://localhost:8000` (loopback
-only) and generate a local API key on first start.
+**Prerequisite:** Docker running Linux containers. The published `v0.1.2` image targets **Linux x86_64**;
+other architectures may need emulation or a source build. Shell examples below use Bash; a PowerShell
+version follows. Prefer Python? Use the [no-Docker option](#local-no-docker).
 
-### Option A — published image (fastest)
+### 1. Start the API
 
 ```bash
-docker run -d --name blazecrawl -p 127.0.0.1:8000:8000 \
+docker run -d --name blazecrawl \
+  -p 127.0.0.1:8000:8000 \
   -v blazecrawl-data:/data/blazecrawl \
   ghcr.io/danishxsethi/blazecrawl:0.1.2
-
-# grab the auto-generated local API key (shown once)
-docker logs blazecrawl 2>&1 | grep "first run"
 ```
 
-### Option B — Docker Compose from source
+The API is published to loopback only. The volume keeps your generated key across container restarts.
 
-Prerequisites: Docker + Docker Compose.
+### 2. Get your local key
+
+```bash
+docker logs -f blazecrawl
+```
+
+Wait for the `first run` line, copy the `blz_local_...` key, then press **Ctrl+C** to stop following
+the logs; the container keeps running. The key is shown only when first generated. Keep it private.
+If you reuse an existing volume, use your previously saved key instead.
+
+### 3. Make your first request
+
+```bash
+export BLAZECRAWL_API_URL="http://127.0.0.1:8000"
+export BLAZECRAWL_API_KEY="blz_local_REPLACE_WITH_YOUR_KEY"
+
+curl -fsS "$BLAZECRAWL_API_URL/ready"
+
+curl -fsS "$BLAZECRAWL_API_URL/v1/scrape" \
+  -H "Authorization: Bearer $BLAZECRAWL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com","formats":["markdown"],"render":"static"}'
+```
+
+The JSON response contains `success` and `data`; your extracted Markdown is at **`data.markdown`**.
+The SDKs unwrap `data` for you. Check `browser.is_healthy` in `/ready` before using browser rendering;
+static extraction can still work when the browser pool is unavailable.
+
+Open **[interactive API docs](http://127.0.0.1:8000/docs)** on your running instance to explore the contract.
+
+<details>
+<summary><strong>PowerShell quickstart</strong></summary>
+
+```powershell
+docker run -d --name blazecrawl -p 127.0.0.1:8000:8000 -v blazecrawl-data:/data/blazecrawl ghcr.io/danishxsethi/blazecrawl:0.1.2
+docker logs -f blazecrawl
+```
+
+Copy the first-run key and press Ctrl+C, then:
+
+```powershell
+$env:BLAZECRAWL_API_URL = "http://127.0.0.1:8000"
+$env:BLAZECRAWL_API_KEY = "blz_local_REPLACE_WITH_YOUR_KEY"
+Invoke-RestMethod "$env:BLAZECRAWL_API_URL/ready"
+
+$headers = @{ Authorization = "Bearer $env:BLAZECRAWL_API_KEY" }
+$body = @{ url = "https://example.com"; formats = @("markdown"); render = "static" } | ConvertTo-Json
+$result = Invoke-RestMethod -Uri "$env:BLAZECRAWL_API_URL/v1/scrape" -Method Post -Headers $headers -ContentType "application/json" -Body $body
+$result.data.markdown
+```
+
+</details>
+
+<details>
+<summary><strong>Build from source with Docker Compose</strong></summary>
 
 ```bash
 git clone https://github.com/danishxsethi/blazecrawl.git
 cd blazecrawl
 docker compose up --build -d
-docker compose logs api | grep "first run"
+docker compose logs -f api
 ```
 
-### Scrape
+Copy the first-run key, stop following logs, and use the same requests above.
+Compose also includes an optional Redis service for caching; crawl jobs remain in process.
 
-See [HTML table conversion and limitations](docs/MARKDOWN_TABLES.md) when extracting tabular data.
+</details>
 
-Use the key from the logs (`blz_local_...`):
+**Deployment note:** set `BLAZECRAWL_API_KEY` yourself to use a key that is never printed or persisted.
+Keep authentication enabled. Publishing beyond loopback requires deliberate access controls and TLS.
+See the [security model](docs/SECURITY_MODEL.md) before exposing the API.
 
-```bash
-curl -X POST http://localhost:8000/v1/scrape \
-  -H "Authorization: Bearer blz_local_xxxxxxxx" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+### Local (no Docker)
+
+Requires **Python 3.11+**. On native Windows, set an explicit `BLAZECRAWL_API_KEY` before starting
+the server; generated-key storage expects POSIX file permissions. Use the same securely generated
+value in both server and client terminals:
+
+```powershell
+$env:BLAZECRAWL_API_KEY = "blz_local_REPLACE_WITH_A_RANDOM_SECRET"
 ```
 
-The key is persisted to the data volume (mode `0600`) and reused on restart.
-
-> **Stable keys:** set your own key and it will never be persisted or printed:
-> `BLAZECRAWL_API_KEY=my-secret-key docker compose up`. To expose the API
-> beyond loopback, change the published port deliberately and put TLS in front.
-
-> **Trusted local development:** to skip the API key entirely, run bound to
-> loopback with auth explicitly disabled:
-> `BLAZECRAWL_AUTH_DISABLED=true BLAZECRAWL_HOST=127.0.0.1`.
-> This is refused on any non-loopback bind.
-
-## Local (no Docker)
+Install into a virtual environment:
 
 ```bash
-pip install -e .
-playwright install chromium
-blazecrawl-server          # serves on http://127.0.0.1:8000
-```
-
-## API
-
-| Endpoint | Description |
-|---|---|
-| `GET /health` | Liveness. |
-| `GET /ready` | Readiness + browser-pool/cache/queue status. |
-| `POST /v1/scrape` | Scrape a URL → Markdown/HTML/text/links/images. |
-| `POST /v1/map` | Discover a site's URL set (sitemap + link graph). |
-| `POST /v1/crawl` | Start a same-origin BFS crawl (async job). |
-| `GET /v1/crawl/{id}` | Poll crawl status/results. |
-| `DELETE /v1/crawl/{id}` | Cancel a crawl. |
-
-### Scrape
-
-```bash
-curl -X POST http://localhost:8000/v1/scrape \
-  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","formats":["markdown","links"],"render":"auto","user_agent":"ResearchBot/2.4"}'
-```
-
-`render` is `auto` (static, with browser fallback when content is thin),
-`static`, or `browser`. `user_agent` controls the outbound User-Agent header and
-is included in the scrape cache key.
-
-### Map
-
-```bash
-curl -X POST http://localhost:8000/v1/map \
-  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
-```
-
-### Crawl
-
-```bash
-curl -X POST http://localhost:8000/v1/crawl \
-  -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com","max_pages":25,"max_depth":2,"user_agent":"ResearchBot/2.4"}'
-# → {"job_id":"...","status_url":"/v1/crawl/..."}
-curl http://localhost:8000/v1/crawl/<job_id> -H "Authorization: Bearer $KEY"
-```
-
-`user_agent` selects which robots.txt rules a crawl follows. It defaults to
-`BlazeCrawl/0.1.0` and can be set per crawl when a site publishes bot-specific rules.
-
-
-<p align="center">
-  <img
-    src="docs/assets/blazecrawl-map-crawl.gif"
-    alt="BlazeCrawl map and crawl: discover a site's URLs, then crawl a bounded set of pages to Markdown with robots.txt respected"
-    width="900"
-  />
-</p>
-
-## Install SDKs and MCP integrations
-
-All packages are published for v0.1.2 across PyPI, npm, and GHCR.
-
-```bash
-# Python server / CLI
 pip install blazecrawl-core==0.1.2
 playwright install chromium
-
-# Python SDK or MCP server
-pip install blazecrawl==0.1.2
-pip install blazecrawl-mcp==0.1.2
-
-# Node SDK or MCP server (Node 18+)
-npm install @blazecrawl/sdk@0.1.2
-npm install @blazecrawl/mcp@0.1.2
+blazecrawl-server
 ```
 
-`blazecrawl-core` starts the self-hosted server and provides the CLI.
-`blazecrawl` and `@blazecrawl/sdk` are API clients. The `*-mcp` packages expose
-BlazeCrawl tools to MCP-compatible clients over stdio.
+On Linux, `playwright install --with-deps chromium` also installs the browser's OS dependencies.
+The server defaults to `http://127.0.0.1:8000`. If you did not supply your own key, copy the first-run
+key; then make the same authenticated request from another terminal. The CLI is included in `blazecrawl-core`.
 
-## SDKs & CLI
+## Integrations
 
-**Python**
+All clients below connect to **your running BlazeCrawl API**. They do not start a server.
+Keep `BLAZECRAWL_API_URL` and `BLAZECRAWL_API_KEY` from the quickstart in your environment.
+
+| Surface | Install | Detailed guide |
+|---|---|---|
+| Server + CLI | `pip install blazecrawl-core==0.1.2` | [Quickstart](#quickstart) |
+| Python SDK | `pip install blazecrawl==0.1.2` | [Python SDK](sdks/python/README.md) |
+| Node.js SDK, Node 18+ | `npm install @blazecrawl/sdk@0.1.2` | [Node SDK](sdks/node/README.md) |
+| Python MCP server | `pip install blazecrawl-mcp==0.1.2` | [Python MCP](mcp/python/README.md) |
+| Node.js MCP server, Node 18+ | `npm install @blazecrawl/mcp@0.1.2` | [Node MCP](mcp/node/README.md) |
+
+### Python
 
 ```python
 from blazecrawl import BlazeCrawl
 
-with BlazeCrawl(api_key="blz_local_...") as bc:
-    print(bc.scrape("https://example.com")["markdown"])
+with BlazeCrawl() as client:  # Uses your environment variables.
+    document = client.scrape("https://example.com", render="static")
+    print(document["markdown"])
 ```
 
-**Node**
+### Node.js
 
-```js
+Use an ES module, such as `scrape.mjs`:
+
+```javascript
 import { BlazeCrawl } from "@blazecrawl/sdk";
-const doc = await new BlazeCrawl({ apiKey: "blz_local_..." }).scrape("https://example.com");
-console.log(doc.markdown);
+
+const client = new BlazeCrawl(); // Uses your environment variables.
+const document = await client.scrape("https://example.com", { render: "static" });
+console.log(document.markdown);
 ```
 
-**CLI**
+### CLI
 
 ```bash
-export BLAZECRAWL_API_KEY=blz_local_...
-blazecrawl scrape https://example.com
-blazecrawl scrape https://example.com --output page.md
-blazecrawl map https://example.com
-blazecrawl crawl https://example.com --max-pages 25 --wait
+blazecrawl scrape https://example.com --render static
+blazecrawl map https://quotes.toscrape.com
+blazecrawl crawl https://quotes.toscrape.com --max-pages 3 --max-depth 1 --wait
+blazecrawl health
 ```
 
-Use `scrape --output PATH` to save the result as UTF-8 instead of printing it.
-It uses the same format as stdout: Markdown when available, otherwise JSON.
-Combine with `--json` to save the full JSON response. The parent directory must
-exist; a successful response overwrites the destination file. API errors are
-printed to stderr without modifying the destination, and file-write errors
-return a nonzero exit status.
+Add `--json` for the full response. See [runnable examples](examples/README.md) for more.
 
-**MCP** — give an MCP-compatible AI client web-extraction tools while the
-crawler stays self-hosted on your machine:
+**Source-checkout extras:** `scrape --output page.md` and `doctor` are available in the current
+repository, **not the published `v0.1.2` CLI**. Follow [source setup](CONTRIBUTING.md#setup) to use them.
+`--output` writes UTF-8 and overwrites an existing file; its parent directory must exist.
+`doctor` checks Chromium and, when configured, server/key access.
+
+### MCP
+
+Give an MCP-compatible client `scrape`, `map`, and `crawl` tools over stdio while the extraction
+engine stays self-hosted. After installing `blazecrawl-mcp`, add:
 
 ```json
 {
   "mcpServers": {
     "blazecrawl": {
       "command": "blazecrawl-mcp",
-      "env": { "BLAZECRAWL_API_KEY": "blz_local_..." }
+      "env": {
+        "BLAZECRAWL_API_URL": "http://127.0.0.1:8000",
+        "BLAZECRAWL_API_KEY": "blz_local_REPLACE_WITH_YOUR_KEY"
+      }
     }
   }
 }
 ```
 
-This generic config works with any MCP client that launches stdio servers. The
-`blazecrawl-mcp` command comes from `pip install blazecrawl-mcp` (Python) or
-`npx @blazecrawl/mcp` (Node) — see [mcp/python](mcp/python/README.md) and
-[mcp/node](mcp/node/README.md).
+Replace the placeholder with your local key. Your client must be able to find the installed command.
+Prefer Node.js? See the [equivalent `npx` configuration](mcp/node/README.md).
+
+<details>
+<summary><strong>Watch a real MCP tool call</strong></summary>
 
 <p align="center">
-  <img
-    src="docs/assets/blazecrawl-mcp.gif"
-    alt="BlazeCrawl over MCP: a client lists the scrape, map, and crawl tools and makes a real scrape tool call that returns Markdown — no third-party scraping service"
-    width="900"
-  />
+  <img src="docs/assets/blazecrawl-mcp.gif" alt="Real MCP stdio client lists scrape, map, and crawl tools, then calls scrape and receives the first Markdown paragraph" width="1000" />
 </p>
 
-More runnable snippets live in [examples/](examples/README.md).
+[Static view](docs/assets/blazecrawl-mcp.png). This is a protocol demonstration, not a simulated AI conversation.
 
-## Architecture
+</details>
 
+## API
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Liveness, version, and runtime mode. |
+| `GET /ready` | Browser-pool, cache, and queue status. |
+| `POST /v1/scrape` | One page to Markdown, HTML, text, links, or images. |
+| `POST /v1/map` | Discover URLs from sitemaps and the link graph. |
+| `POST /v1/crawl` | Start an asynchronous, same-origin crawl. |
+| `GET /v1/crawl/{job_id}` | Poll status and collected page data. |
+| `DELETE /v1/crawl/{job_id}` | Cancel a crawl. |
+
+All `/v1/` endpoints require your bearer key by default. Scrape `render` accepts `static`, `browser`,
+or `auto` (static first, browser fallback for thin content). See [table conversion limits](docs/MARKDOWN_TABLES.md)
+when working with tabular pages. The current source checkout also supports `user_agent` per scrape
+or crawl; it selects robots.txt rules for crawls. That field is **not in the published `v0.1.2` schema**.
+Your running instance's `/docs` is the authoritative version-specific contract.
+
+<details>
+<summary><strong>Map and crawl over HTTP, with a real walkthrough</strong></summary>
+
+```bash
+curl -fsS "$BLAZECRAWL_API_URL/v1/map" \
+  -H "Authorization: Bearer $BLAZECRAWL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://quotes.toscrape.com"}'
+
+curl -fsS "$BLAZECRAWL_API_URL/v1/crawl" \
+  -H "Authorization: Bearer $BLAZECRAWL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://quotes.toscrape.com","max_pages":3,"max_depth":1}'
+
+# Replace JOB_ID with the job_id from the crawl response.
+curl -fsS "$BLAZECRAWL_API_URL/v1/crawl/JOB_ID" \
+  -H "Authorization: Bearer $BLAZECRAWL_API_KEY"
 ```
-        ┌────────────────────────────────────────────┐
- SDK ──▶│  FastAPI  /v1/scrape  /v1/map  /v1/crawl   │
- CLI ──▶│                                            │
- MCP ──▶│  auth (local key)                          │
-        └───────┬────────────────────────────────────┘
-                │
-     ┌──────────▼───────────┐     ┌──────────────────────────┐
-     │  network/egress      │     │  engine                  │
-     │  • SSRF validate+pin │────▶│  • content extraction    │
-     │  • manual redirects  │     │    (readability/trafil.) │
-     │  • private-IP block  │     │  • HTML → Markdown       │
-     │  • browser req guard │     │  • browser pool (Playwright)
-     └──────────────────────┘     │  • crawler (BFS + robots)│
-                                   │  • cache (memory|redis)  │
-                                   └──────────────────────────┘
-```
 
-Full details in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Starting a crawl returns HTTP `202` with `job_id` and `status_url`.
+Poll until `status` is `completed`, `failed`, or `cancelled`; inspect `pages_failed` as well.
+
+<p align="center">
+  <img src="docs/assets/blazecrawl-map-crawl.gif" alt="Real CLI map finds site URLs, then a crawl completes with a three-page limit and zero failed pages" width="1000" />
+</p>
+
+[Static view](docs/assets/blazecrawl-map-crawl.png). Counts shown are from the recorded run, not a performance guarantee.
+
+</details>
 
 ## Security model
 
-BlazeCrawl Core is designed to be safe to point at arbitrary URLs. Every
-outbound request — whether a fast static fetch or a full browser render — is
-forced through a single egress path that validates the destination *before* any
-bytes are sent.
+**User-supplied URLs are untrusted input.** Static HTTP validates destinations and pins connections
+to approved addresses. Browser traffic passes through a validating loopback egress proxy, with
+request guards for redirects, subresources, and unsupported browser primitives.
+
+| Boundary | Controls |
+|---|---|
+| Destinations | Private, loopback, link-local, reserved, and cloud-metadata addresses are blocked. |
+| DNS and redirects | Validate the complete resolved address set, pin connections, revalidate redirect hops, and block HTTPS-to-HTTP downgrades. |
+| Browser egress | Govern HTTP/HTTPS socket destinations; block WebSockets, workers, and service workers. |
+| Resource use | Response-size caps, timeouts, and bounded crawl requests. |
+| Local access | Bearer authentication by default; loopback-only port publishing in the quickstart. |
+
+<details>
+<summary><strong>See a real blocked request</strong></summary>
 
 <p align="center">
-  <img
-    src="docs/assets/blazecrawl-security.gif"
-    alt="BlazeCrawl egress security: every outbound URL is resolved, every resolved IP validated, and the connection pinned — a public URL is allowed while a loopback address is blocked"
-    width="900"
-  />
+  <img src="docs/assets/blazecrawl-security.gif" alt="Real public-page scrape succeeds; a request to a loopback URL is rejected with url_rejected and the CLI exits with code 1" width="1000" />
 </p>
 
-**Static path** (default for simple pages):
+[Static view](docs/assets/blazecrawl-security.png). The demo shows actual responses, not packet-level telemetry.
 
-```mermaid
-flowchart TD
-    A["User-supplied URL"] --> B["Validate URL scheme + syntax"]
-    B --> C["Resolve DNS once"]
-    C --> D["Validate EVERY returned IP<br/>against private/reserved denylist"]
-    D --> E["Pin connection to the validated IP"]
-    E --> F["Controlled outbound connection<br/>redirect hops re-validated"]
+</details>
+
+Egress controls are **not a substitute for workload isolation**. Use appropriate containers/VMs for
+untrusted crawling, keep authentication enabled, and respect site policies and applicable law.
+Read the [full threat model](docs/SECURITY_MODEL.md); report vulnerabilities through [SECURITY.md](SECURITY.md).
+
+## Architecture
+
+```text
+HTTP / Python / Node.js / CLI / MCP
+                |
+        FastAPI + local auth
+                |
+       Scrape / Map / Crawl
+                |
+    Validated egress + browser proxy
+                |
+         Public web content
+                |
+      Extraction -> Markdown / data
 ```
 
-**Browser path** (JS-heavy pages): Chromium never talks to the network
-directly. Every subresource request is intercepted and routed through the same
-controls:
-
-```mermaid
-flowchart TD
-    A["Chromium page request"] --> B["BlazeCrawl egress guard<br/>intercepts every subresource"]
-    B --> C["Resolve + validate IP set"]
-    C --> D["Pin to validated socket"]
-    D --> E["Internet"]
-    B -. "blocked: private, loopback,<br/>metadata, downgrade" .-> X["Request denied"]
-```
-
-Highlights:
-
-* DNS-rebinding-resistant egress (resolve-once + pin-at-connect).
-* Private/loopback/link-local/cloud-metadata/IPv4-mapped-IPv6 blocked.
-* `https→http` redirect downgrades blocked; redirect hops re-validated.
-* Response size caps; per-hop timeouts; browser request interception guard.
-* robots.txt enforced and not configurable-off in the OSS core.
-
-See [SECURITY.md](SECURITY.md) for the disclosure policy and
-[docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md) for the full model.
-
-## Maturity
-
-`v0.1.x` — early release. The scrape/map/crawl engine, egress security, SDKs,
-CLI and MCP are functional and tested. This is **not yet** battle-hardened at
-large scale; please report issues. See [CHANGELOG.md](CHANGELOG.md) and the
-[roadmap](docs/ROADMAP.md).
+The default is a **single-node Python service** with an in-process crawl manager and memory cache.
+Redis caching is optional; a distributed/persistent crawl queue is not implemented in this release.
+Explore [the architecture](docs/ARCHITECTURE.md) and [the roadmap](docs/ROADMAP.md) before proposing extensions.
 
 ## Contributing
 
-We welcome contributions — see [CONTRIBUTING.md](CONTRIBUTING.md) and the
-good-first-issue backlog in [docs/CONTRIBUTION_BACKLOG.md](docs/CONTRIBUTION_BACKLOG.md).
+**Help make self-hosted web extraction easier to trust and easier to use.**
+You do not need to start with networking internals: a reproducible bug report, a tricky extraction
+fixture, a useful example, or a clearer explanation can make a meaningful contribution.
+
+**[Find a good first issue](https://github.com/danishxsethi/blazecrawl/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22)** ·
+**[Browse help wanted](https://github.com/danishxsethi/blazecrawl/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22help%20wanted%22)** ·
+**[Propose an improvement](https://github.com/danishxsethi/blazecrawl/issues/new/choose)**
+
+1. Choose an open issue or discuss a focused change before building something substantial.
+2. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests, and the first-PR workflow.
+3. Include a reproduction or relevant tests, and explain the user-facing difference in your PR.
+
+The [contribution backlog](docs/CONTRIBUTION_BACKLOG.md) offers ideas and context; some items are
+already complete, so check the live tracker before claiming one. All user-controlled network access
+must stay within the existing egress controls, including the browser proxy.
+
+Built with help from [our contributors](https://github.com/danishxsethi/blazecrawl/graphs/contributors).
+Participation follows the [Code of Conduct](CODE_OF_CONDUCT.md); project roles are described in [Governance](GOVERNANCE.md).
+
+## Project status and support
+
+**v0.1.x: an early release, not a large-scale production guarantee.** The core surfaces are implemented;
+real-world feedback, compatibility reports, and regression tests are especially useful.
+
+Core is the open-source engine, not a hosted SaaS. Managed anti-bot/proxy services, managed LLM execution,
+enterprise identity, billing, and multi-tenant metering are outside this repository's scope.
+See [OSS vs. Cloud](docs/OSS_VS_CLOUD.md). Performance figures are limited to the
+[documented baseline and its caveats](docs/BENCHMARKS.md), not competitor comparisons.
+
+| Need | Go here |
+|---|---|
+| Bug report or feature request | [Issue templates](https://github.com/danishxsethi/blazecrawl/issues/new/choose) |
+| Setup question | [Support guide](SUPPORT.md) and a focused GitHub issue |
+| Release notes | [Releases](https://github.com/danishxsethi/blazecrawl/releases) · [Changelog](CHANGELOG.md) |
+| Planned work | [Roadmap](docs/ROADMAP.md) |
+| Security disclosure | [Security policy](SECURITY.md) |
+
+GitHub Discussions is not enabled; GitHub issues are the current public support channel.
+If BlazeCrawl is useful to you, star the repository to help others discover it, and watch releases for updates.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE).
+**Apache-2.0.** Use it, self-host it, and build on it. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
